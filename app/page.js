@@ -1,102 +1,49 @@
-import Image from "next/image";
+import React from "react";
 
-export default function Home() {
+export default function HomePage() {
   return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="list-inside list-decimal text-sm/6 text-center sm:text-left font-[family-name:var(--font-geist-mono)]">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] px-1 py-0.5 rounded font-[family-name:var(--font-geist-mono)] font-semibold">
-              app/page.js
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+    <div style={{
+      minHeight: "100vh",
+      background: "linear-gradient(to bottom right, #1e3a8a, #6b21a8, #000)",
+      color: "white",
+      padding: "2rem",
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "space-between"
+    }}>
+      {/* Header */}
+      <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <h1 style={{ fontSize: "2.5rem", fontWeight: "bold" }}>Meme Coin Launcher</h1>
+        <button style={{ backgroundColor: "#9333ea", color: "white", padding: "0.75rem 1.5rem", border: "none", borderRadius: "12px" }}>
+          🔌 Connect Wallet
+        </button>
+      </header>
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+      {/* Main */}
+      <main style={{ display: "flex", flexWrap: "wrap", gap: "2rem", marginTop: "3rem" }}>
+        {/* Text Area */}
+        <div style={{ flex: 1 }}>
+          <h2 style={{ fontSize: "2rem", marginBottom: "1rem" }}>Launch Your Meme Coin Instantly</h2>
+          <p style={{ fontSize: "1.1rem", color: "#ccc", marginBottom: "2rem" }}>
+            Choose your coin name, symbol, and supply. Deploy it with anti-rug protection in seconds.
+          </p>
+          <button style={{ backgroundColor: "#facc15", color: "#000", padding: "1rem 2rem", border: "none", fontWeight: "bold", fontSize: "1.2rem", borderRadius: "16px" }}>
+            🚀 Launch a Coin
+          </button>
+        </div>
+
+        {/* Visual Preview */}
+        <div style={{ flex: 1, backgroundColor: "rgba(107, 33, 168, 0.3)", padding: "2rem", borderRadius: "12px", backdropFilter: "blur(10px)" }}>
+          <h3 style={{ fontSize: "1.5rem", marginBottom: "1rem" }}>Coin Preview</h3>
+          <p><strong>Token Name:</strong> PepePump</p>
+          <p><strong>Symbol:</strong> PEP</p>
+          <p><strong>Supply:</strong> 1,000,000</p>
         </div>
       </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
+
+      {/* Footer */}
+      <footer style={{ textAlign: "center", marginTop: "4rem", color: "#aaa" }}>
+        Built with 💜 by DDM Technology
       </footer>
     </div>
   );
