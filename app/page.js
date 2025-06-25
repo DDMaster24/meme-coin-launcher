@@ -4,6 +4,12 @@ import { ethers } from "ethers";
 
 export default function HomePage() {
   const [walletAddress, setWalletAddress] = useState("");
+  const [tokenName, setTokenName] = useState("PepePump");
+  const [symbol, setSymbol] = useState("PEP");
+  const [supply, setSupply] = useState("1000000");
+
+  const [launching, setLaunching] = useState(false);
+  const [launchSuccess, setLaunchSuccess] = useState(false);
 
   async function connectWallet() {
     if (!window.ethereum) {
@@ -24,16 +30,13 @@ export default function HomePage() {
     setWalletAddress("");
   }
 
-  const [tokenName, setTokenName] = useState("PepePump");
-  const [symbol, setSymbol] = useState("PEP");
-  const [supply, setSupply] = useState("1000000");
-
   return (
     <div style={{
       minHeight: "100vh",
-      background: "linear-gradient(to bottom right, #0f172a, #1e293b, #000)",
+      backgroundColor: "#000",
+      backgroundImage: "radial-gradient(circle at top left, rgba(0,255,255,0.08), transparent), radial-gradient(circle at bottom right, rgba(255,0,255,0.08), transparent)",
       color: "white",
-      fontFamily: "'Segoe UI', Tahoma, Geneva, Verdana, sans-serif",
+      fontFamily: "'Segoe UI', sans-serif",
       padding: "2rem",
       display: "flex",
       flexDirection: "column",
@@ -49,26 +52,53 @@ export default function HomePage() {
             <span style={{ marginRight: "1rem", fontSize: "0.95rem", color: "#ccc" }}>
               {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
             </span>
-            <button onClick={disconnectWallet} style={{ backgroundColor: "#ef4444", padding: "0.6rem 1.2rem", border: "none", borderRadius: "10px", color: "white" }}>
+            <button
+              onClick={disconnectWallet}
+              style={{
+                backgroundColor: "#ef4444",
+                padding: "0.6rem 1.2rem",
+                border: "none",
+                borderRadius: "10px",
+                color: "white",
+                boxShadow: "0 0 10px #ef4444aa",
+                cursor: "pointer"
+              }}
+            >
               Disconnect
             </button>
           </div>
         ) : (
-          <button onClick={connectWallet} style={{ backgroundColor: "#6366f1", padding: "0.75rem 1.5rem", border: "none", borderRadius: "12px", fontSize: "1rem", fontWeight: "bold", color: "white" }}>
+          <button
+            onClick={connectWallet}
+            style={{
+              backgroundColor: "#00ffff",
+              color: "#000",
+              padding: "0.75rem 1.5rem",
+              border: "none",
+              borderRadius: "12px",
+              fontSize: "1rem",
+              fontWeight: "bold",
+              boxShadow: "0 0 15px #00ffff99",
+              transition: "transform 0.2s ease, box-shadow 0.2s ease",
+              cursor: "pointer"
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = "scale(1.05)"}
+            onMouseLeave={(e) => e.currentTarget.style.transform = "scale(1.0)"}
+          >
             🔌 Connect Wallet
           </button>
         )}
       </header>
 
-      {/* Main Grid */}
+      {/* Main */}
       <main style={{ display: "flex", flexWrap: "wrap", gap: "2rem" }}>
-        {/* Left: Coin Form */}
+        {/* Coin Form */}
         <div style={{
           flex: 1,
-          backgroundColor: "#1e293b",
+          backgroundColor: "#111",
           padding: "2rem",
           borderRadius: "16px",
-          boxShadow: "0 0 20px rgba(255, 255, 255, 0.05)"
+          boxShadow: "0 0 20px #facc15aa"
         }}>
           <h2 style={{ fontSize: "1.8rem", marginBottom: "1.5rem", fontWeight: "600" }}>
             Create Your Meme Coin
@@ -79,7 +109,6 @@ export default function HomePage() {
             <input
               value={tokenName}
               onChange={(e) => setTokenName(e.target.value)}
-              placeholder="e.g. PepePump"
               style={{ width: "100%", padding: "0.6rem", borderRadius: "8px", border: "none", marginTop: "0.4rem" }}
             />
           </div>
@@ -89,7 +118,6 @@ export default function HomePage() {
             <input
               value={symbol}
               onChange={(e) => setSymbol(e.target.value)}
-              placeholder="e.g. PEP"
               style={{ width: "100%", padding: "0.6rem", borderRadius: "8px", border: "none", marginTop: "0.4rem" }}
             />
           </div>
@@ -99,7 +127,6 @@ export default function HomePage() {
             <input
               value={supply}
               onChange={(e) => setSupply(e.target.value)}
-              placeholder="e.g. 1000000"
               style={{ width: "100%", padding: "0.6rem", borderRadius: "8px", border: "none", marginTop: "0.4rem" }}
             />
           </div>
@@ -114,32 +141,51 @@ export default function HomePage() {
               border: "none",
               borderRadius: "14px",
               cursor: "pointer",
-              transition: "0.2s ease",
+              boxShadow: "0 0 20px #facc1599"
             }}
-            onClick={() => alert("🚧 Launching functionality coming soon!")}
+            onClick={() => {
+              setLaunching(true);
+              setLaunchSuccess(false);
+              setTimeout(() => {
+                setLaunching(false);
+                setLaunchSuccess(true);
+              }, 2500);
+            }}
           >
             🚀 Launch Coin
           </button>
+
+          {launching && (
+            <p style={{ marginTop: "1rem", color: "#38bdf8", fontWeight: "500" }}>
+              ⏳ Launching your meme coin...
+            </p>
+          )}
+          {launchSuccess && (
+            <p style={{ marginTop: "1rem", color: "#4ade80", fontWeight: "500" }}>
+              ✅ {tokenName} ({symbol}) with {supply} tokens has been launched!
+            </p>
+          )}
         </div>
 
-        {/* Right: Coin Preview */}
+        {/* Coin Preview */}
         <div style={{
           flex: 1,
-          backgroundColor: "#111827",
+          backgroundColor: "#0a0a0a",
           padding: "2rem",
           borderRadius: "16px",
-          boxShadow: "0 0 20px rgba(255, 255, 255, 0.05)"
+          boxShadow: "0 0 25px #38bdf8aa",
         }}>
           <h3 style={{ fontSize: "1.5rem", marginBottom: "1.2rem", fontWeight: "600" }}>
             Coin Preview
           </h3>
           <div style={{
-            backgroundColor: "#0f172a",
+            backgroundColor: "#000",
             padding: "1.5rem",
             borderRadius: "10px",
             fontFamily: "monospace",
             fontSize: "1.1rem",
-            color: "#38bdf8"
+            color: "#38bdf8",
+            boxShadow: "inset 0 0 8px #38bdf899"
           }}>
             Token Name: <strong>{tokenName}</strong><br />
             Symbol: <strong>{symbol}</strong><br />
@@ -151,7 +197,7 @@ export default function HomePage() {
 
       {/* Footer */}
       <footer style={{ textAlign: "center", marginTop: "4rem", fontSize: "0.9rem", color: "#888" }}>
-        Built with 💜 by DDM Technology | Web3 ready
+        Built with 💜 by DDM Technology | Powered by React + Web3
       </footer>
     </div>
   );
