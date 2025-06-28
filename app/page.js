@@ -7,6 +7,8 @@ export default function HomePage() {
   const [symbol, setSymbol] = useState("PEP");
   const [supply, setSupply] = useState("1000000");
   const [logo, setLogo] = useState(null);
+  const [launching, setLaunching] = useState(false);
+  const [launchSuccess, setLaunchSuccess] = useState(false);
 
   const fee = tier === "basic" ? "0.15 SOL" : "0.7 SOL";
 
@@ -23,7 +25,7 @@ export default function HomePage() {
         alignItems: "center",
       }}
     >
-      {/* Page Title */}
+      {/* Title */}
       <h1
         style={{
           fontSize: "3.5rem",
@@ -47,7 +49,7 @@ export default function HomePage() {
         The Easy Meme Coin Launcher
       </h2>
 
-      {/* Coin Forge Form */}
+      {/* Forge Form */}
       <div
         style={{
           backgroundColor: "#fff8e1",
@@ -173,6 +175,14 @@ export default function HomePage() {
 
         {/* Forge Button */}
         <button
+          onClick={() => {
+            setLaunching(true);
+            setLaunchSuccess(false);
+            setTimeout(() => {
+              setLaunching(false);
+              setLaunchSuccess(true);
+            }, 2500);
+          }}
           style={{
             padding: "1rem 2rem",
             fontSize: "1.1rem",
@@ -187,6 +197,30 @@ export default function HomePage() {
         >
           🚀 Forge Your Coin
         </button>
+
+        {/* Launching / Success Messages */}
+        {launching && (
+          <p
+            style={{
+              marginTop: "1rem",
+              color: "#38bdf8",
+              fontWeight: "500",
+            }}
+          >
+            ⏳ Forging your coin...
+          </p>
+        )}
+        {launchSuccess && (
+          <p
+            style={{
+              marginTop: "1rem",
+              color: "#4ade80",
+              fontWeight: "500",
+            }}
+          >
+            ✅ {tokenName} ({symbol}) with {supply} tokens has been forged!
+          </p>
+        )}
       </div>
     </div>
   );
