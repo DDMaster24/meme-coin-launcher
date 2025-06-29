@@ -1,57 +1,37 @@
-'use client'
+'use client';
 
-import { useState, useEffect } from 'react'
-import { ethers } from 'ethers'
-
-const CONTRACT_SOURCE = `
-// SPDX-License-Identifier: MIT
-pragma solidity ^0.8.20;
-
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-
-contract ForgeCoin is ERC20 {
-    constructor(string memory name, string memory symbol, uint256 initialSupply)
-        ERC20(name, symbol)
-    {
-        _mint(msg.sender, initialSupply * 10 ** decimals());
-    }
-}
-`;
+import { useState } from 'react';
+import { ethers } from 'ethers';
+import { contractSource } from '../utils/ForgeCoin';
 
 export default function LaunchPage() {
-  const [name, setName] = useState('');
-  const [symbol, setSymbol] = useState('');
-  const [supply, setSupply] = useState('');
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
-  const [contractAddress, setContractAddress] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [walletAddress, setWalletAddress] = useState('');
+  const [tokenName, setTokenName] = useState('');
+  const [tokenSymbol, setTokenSymbol] = useState('');
+  const [initialSupply, setInitialSupply] = useState('');
+  const [statusMessage, setStatusMessage] = useState('');
 
-  // 🔌 Prompt user to connect MetaMask
   const connectWallet = async () => {
-    if (!window.ethereum) {
-      alert('MetaMask not found. Please install the extension.');
+    if (typeof window === 'undefined' || !window.ethereum) {
+      alert('Please install MetaMask to continue');
       return;
     }
     try {
-      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const accounts = await window.ethereum.request({
+        method: 'eth_requestAccounts',
+      });
       setWalletAddress(accounts[0]);
-    } catch (err: any) {
-      console.error('Wallet connection failed', err);
-      setError('Failed to connect wallet.');
+    } catch (err) {
+      console.error('Wallet connect error:', err);
+      setStatusMessage('Failed to connect wallet');
     }
   };
 
-  // 🚀 Deploy the token to Sepolia
-  const handleDeploy = async (e: any) => {
-    e.preventDefault();
-    setLoading(true);
-    setError('');
-    setContractAddress('');
+  const deployToken = async () => {
+    setStatusMessage('');
 
-    if (!walletAddress) {
-      setError('Please connect your wallet first.');
-      setLoading(false);
+    if (!walletAddress || !tokenName || !tokenSymbol || !initialSupply) {
+      setStatusMessage('Please fill in all fields and connect your wallet.');
       return;
     }
 
@@ -59,93 +39,73 @@ export default function LaunchPage() {
       const provider = new ethers.BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
 
-      const factory = await ethers.ContractFactory.fromSolidity(
-        { sources: { 'ForgeCoin.sol': { content: CONTRACT_SOURCE } } },
-        signer
-      );
+      // Compile in-browser using ethers.ContractFactory and ABI+Bytecode (future step)
+      // For now use placeholder log to simulate:
+      console.log('Deploying with:', {
+        name: tokenName,
+        symbol: tokenSymbol,
+        supply: initialSupply,
+        wallet: walletAddress,
+      });
 
-      const contract = await factory.deploy(name, symbol, Number(supply));
-      await contract.waitForDeployment();
-      const deployedAddress = await contract.getAddress();
-
-      setContractAddress(deployedAddress);
-    } catch (err: any) {
-      console.error('Deployment error:', err);
-      setError(err.message);
-    } finally {
-      setLoading(false);
+      setStatusMessage(`Mock token created: ${tokenName} (${tokenSymbol}) with supply ${initialSupply}`);
+    } catch (error) {
+      console.error(error);
+      setStatusMessage('Deployment failed. Check the console for more info.');
     }
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-16 p-8 bg-[#1e1e2f] text-white rounded-lg shadow-lg">
-      <h1 className="text-3xl font-bold mb-6">Create Your Token</h1>
+    <main className="min-h-screen bg-[#0f0f0f] text-white flex flex-col items-center py-12 px-6">
+      <h1 className="text-4xl font-extrabold mb-2 text-orange-400">Crypto Forge</h1>
+      <p className="text-lg text-gray-300 mb-10">Easily launch your own meme coin in seconds.</p>
 
       {!walletAddress ? (
         <button
           onClick={connectWallet}
-          className="bg-blue-600 hover:bg-blue-700 text-white py-3 px-6 rounded mb-6"
+          className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded transition-all mb-6"
         >
-          Connect Wallet
+          🔥 Connect Wallet
         </button>
       ) : (
-        <p className="text-green-400 mb-4">
-          Wallet Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-        </p>
+        <p className="text-green-400 mb-4">Wallet Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}</p>
       )}
 
-      <form onSubmit={handleDeploy} className="flex flex-col gap-4">
+      <div className="bg-[#1a1a1a] p-6 rounded shadow-lg w-full max-w-md space-y-4 border border-orange-600">
         <input
           type="text"
-          placeholder="Token Name"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className="p-3 rounded text-black"
-          required
+          placeholder="Token Name (e.g. ForgeCoin)"
+          value={tokenName}
+          onChange={(e) => setTokenName(e.target.value)}
+          className="w-full p-3 bg-black text-white border border-gray-600 rounded"
         />
         <input
           type="text"
-          placeholder="Symbol"
-          value={symbol}
-          onChange={(e) => setSymbol(e.target.value)}
-          className="p-3 rounded text-black"
-          required
+          placeholder="Token Symbol (e.g. FCC)"
+          value={tokenSymbol}
+          onChange={(e) => setTokenSymbol(e.target.value)}
+          className="w-full p-3 bg-black text-white border border-gray-600 rounded"
         />
         <input
           type="number"
-          placeholder="Initial Supply"
-          value={supply}
-          onChange={(e) => setSupply(e.target.value)}
-          className="p-3 rounded text-black"
-          required
+          placeholder="Initial Supply (e.g. 1000000)"
+          value={initialSupply}
+          onChange={(e) => setInitialSupply(e.target.value)}
+          className="w-full p-3 bg-black text-white border border-gray-600 rounded"
         />
-
         <button
-          type="submit"
-          disabled={loading}
-          className={`py-3 px-6 rounded font-semibold ${
-            loading ? 'bg-gray-500 cursor-not-allowed' : 'bg-yellow-500 hover:bg-yellow-600 text-black'
-          }`}
+          onClick={deployToken}
+          className="w-full py-3 bg-gradient-to-r from-yellow-500 to-orange-600 rounded font-bold hover:opacity-90 transition-all"
         >
-          {loading ? 'Deploying...' : 'Launch Coin'}
+          🔨 Launch Coin
         </button>
-      </form>
+      </div>
 
-      {contractAddress && (
-        <p className="mt-6 text-green-300">
-          🎉 Token deployed to: <br />
-          <a
-            href={`https://sepolia.etherscan.io/address/${contractAddress}`}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="underline"
-          >
-            {contractAddress}
-          </a>
-        </p>
+      {statusMessage && (
+        <div className="mt-6 text-center text-sm text-blue-300 bg-[#1a1a1a] p-3 rounded max-w-md">
+          {statusMessage}
+        </div>
       )}
-
-      {error && <p className="mt-6 text-red-400">❌ Error: {error}</p>}
-    </div>
+    </main>
   );
 }
