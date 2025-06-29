@@ -1,43 +1,59 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { ethers } from 'ethers'
 
 const CONTRACT_SOURCE = `
-  // SPDX-License-Identifier: MIT
-  pragma solidity ^0.8.20;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
 
-  import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-  contract ForgeCoin is ERC20 {
-      constructor(string memory name, string memory symbol, uint256 initialSupply)
-          ERC20(name, symbol)
-      {
-          _mint(msg.sender, initialSupply * 10 ** decimals());
-      }
-  }
+contract ForgeCoin is ERC20 {
+    constructor(string memory name, string memory symbol, uint256 initialSupply)
+        ERC20(name, symbol)
+    {
+        _mint(msg.sender, initialSupply * 10 ** decimals());
+    }
+}
 `;
 
 export default function LaunchPage() {
   const [name, setName] = useState('');
   const [symbol, setSymbol] = useState('');
   const [supply, setSupply] = useState('');
-  const [walletAddress, setWalletAddress] = useState('');
+  const [walletAddress, setWalletAddress] = useState<string | null>(null);
   const [contractAddress, setContractAddress] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
+  // 🔌 Prompt user to connect MetaMask
   const connectWallet = async () => {
-    if (!window.ethereum) return alert('Please install MetaMask!');
-    const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-    setWalletAddress(accounts[0]);
+    if (!window.ethereum) {
+      alert('MetaMask not found. Please install the extension.');
+      return;
+    }
+    try {
+      const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+      setWalletAddress(accounts[0]);
+    } catch (err: any) {
+      console.error('Wallet connection failed', err);
+      setError('Failed to connect wallet.');
+    }
   };
 
+  // 🚀 Deploy the token to Sepolia
   const handleDeploy = async (e: any) => {
     e.preventDefault();
     setLoading(true);
     setError('');
     setContractAddress('');
+
+    if (!walletAddress) {
+      setError('Please connect your wallet first.');
+      setLoading(false);
+      return;
+    }
 
     try {
       const provider = new ethers.BrowserProvider(window.ethereum);
@@ -50,10 +66,11 @@ export default function LaunchPage() {
 
       const contract = await factory.deploy(name, symbol, Number(supply));
       await contract.waitForDeployment();
+      const deployedAddress = await contract.getAddress();
 
-      setContractAddress(await contract.getAddress());
+      setContractAddress(deployedAddress);
     } catch (err: any) {
-      console.error(err);
+      console.error('Deployment error:', err);
       setError(err.message);
     } finally {
       setLoading(false);
@@ -72,7 +89,9 @@ export default function LaunchPage() {
           Connect Wallet
         </button>
       ) : (
-        <p className="text-green-400 mb-4">Wallet Connected: {walletAddress}</p>
+        <p className="text-green-400 mb-4">
+          Wallet Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
+        </p>
       )}
 
       <form onSubmit={handleDeploy} className="flex flex-col gap-4">
