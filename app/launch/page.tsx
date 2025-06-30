@@ -63,7 +63,7 @@ export default function LaunchPage() {
       {!walletAddress ? (
         <button
           onClick={connectWallet}
-          className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded transition-all mb-6"
+          className="bg-orange-600 hover:bg-orange-700 text-white font-semibold py-3 px-6 rounded transition-all mb-6 border-4 border-white"
         >
           🔥 Connect Wallet
         </button>
