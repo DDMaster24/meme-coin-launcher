@@ -65,7 +65,6 @@ export default function LaunchPage() {
   getConnectedWallet();
 }, []);
 
-  }, []);
 
   return (
     <main className="min-h-screen p-8 bg-[#111] text-white flex flex-col items-center justify-center space-y-6">
