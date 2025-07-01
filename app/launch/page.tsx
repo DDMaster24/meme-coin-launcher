@@ -3,89 +3,108 @@
 import { useEffect, useState } from 'react';
 import { BrowserProvider, ContractFactory, parseUnits } from 'ethers';
 import { abi, bytecode } from '@/lib/forgecoin';
-import { useRouter } from 'next/navigation';
 
 export default function LaunchPage() {
   const [walletAddress, setWalletAddress] = useState('');
+  const [tokenName, setTokenName] = useState('');
+  const [tokenSymbol, setTokenSymbol] = useState('');
+  const [tokenSupply, setTokenSupply] = useState('');
   const [status, setStatus] = useState('');
-  const router = useRouter();
 
   const connectWallet = async () => {
-    if (typeof window !== 'undefined' && window.ethereum) {
+    if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
       try {
-        const accounts = await window.ethereum.request({
-          method: 'eth_requestAccounts',
-        });
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
         setWalletAddress(accounts[0]);
-      } catch (err) {
-        console.error('Wallet connection failed:', err);
+      } catch (error) {
+        console.error('Wallet connection failed:', error);
       }
     } else {
-      alert('Please install MetaMask!');
+      alert('MetaMask not found!');
     }
   };
 
   const deployToken = async () => {
+    if (!tokenName || !tokenSymbol || !tokenSupply) {
+      alert('Please fill in all fields.');
+      return;
+    }
+
     try {
       setStatus('Deploying your coin...');
       const provider = new BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
-      const factory = new ContractFactory(abi, bytecode, signer);
 
+      const factory = new ContractFactory(abi, bytecode, signer);
       const contract = await factory.deploy(
-        // These values are hardcoded for now
-        'Forge Coin',
-        'FCC',
-        parseUnits('1000000', 18)
+        tokenName,
+        tokenSymbol,
+        parseUnits(tokenSupply, 18)
       );
       await contract.waitForDeployment();
 
-      setStatus(`Token deployed at: ${contract.target}`);
-      router.push(`/success?address=${contract.target}`);
-    } catch (error) {
-      console.error('Error deploying token:', error);
+      const address = await contract.getAddress();
+      setStatus(`Token deployed at: ${address}`);
+    } catch (err) {
+      console.error('Error deploying token:', err);
       setStatus('Deployment failed. See console for details.');
     }
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.ethereum) {
-      window.ethereum
-        .request({ method: 'eth_accounts' })
-        .then((accounts: string[]) => {
-          if (accounts.length > 0) {
-            setWalletAddress(accounts[0]);
-          }
-        });
-    }
+    const checkConnectedWallet = async () => {
+      if (typeof window !== 'undefined' && window.ethereum) {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        }
+      }
+    };
+    checkConnectedWallet();
   }, []);
 
   return (
-    <main className="min-h-screen p-8 bg-black text-white flex flex-col items-center justify-center space-y-6">
-      <h1 className="text-4xl font-bold mb-2">Forge Your Coin</h1>
-      {walletAddress ? (
-        <p className="text-sm">Connected: {walletAddress}</p>
-      ) : (
-        <button
-          onClick={connectWallet}
-          className="px-6 py-2 bg-blue-600 rounded hover:bg-blue-700"
-        >
+    <main className="min-h-screen p-8 bg-[#111] text-white flex flex-col items-center justify-center space-y-6">
+      <h1 className="text-4xl font-bold">Forge Your Coin</h1>
+
+      {!walletAddress ? (
+        <button onClick={connectWallet} className="px-6 py-2 bg-orange-600 rounded hover:bg-orange-700">
           Connect Wallet
         </button>
+      ) : (
+        <p className="text-sm text-orange-300">Connected: {walletAddress}</p>
       )}
 
-      <p className="text-center text-gray-300">
-        This coin is preconfigured as <strong>Forge Coin (FCC)</strong> with 1 million supply.
-      </p>
-
-      <button
-        onClick={deployToken}
-        className="px-6 py-3 bg-orange-600 hover:bg-orange-700 rounded shadow-md transition transform hover:scale-105"
-      >
-        Launch My Token
-      </button>
-
-      {status && <p className="mt-4 text-center">{status}</p>}
+      <div className="w-full max-w-md space-y-4">
+        <input
+          type="text"
+          placeholder="Token Name"
+          value={tokenName}
+          onChange={(e) => setTokenName(e.target.value)}
+          className="w-full px-4 py-2 text-black rounded"
+        />
+        <input
+          type="text"
+          placeholder="Token Symbol"
+          value={tokenSymbol}
+          onChange={(e) => setTokenSymbol(e.target.value)}
+          className="w-full px-4 py-2 text-black rounded"
+        />
+        <input
+          type="number"
+          placeholder="Initial Supply"
+          value={tokenSupply}
+          onChange={(e) => setTokenSupply(e.target.value)}
+          className="w-full px-4 py-2 text-black rounded"
+        />
+        <button
+          onClick={deployToken}
+          className="w-full px-4 py-2 bg-orange-600 hover:bg-orange-700 rounded"
+        >
+          Launch My Token
+        </button>
+        {status && <p className="text-center mt-4">{status}</p>}
+      </div>
     </main>
   );
 }
