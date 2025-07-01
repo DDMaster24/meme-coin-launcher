@@ -48,10 +48,23 @@ export default function LaunchPage() {
     }
   };
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.ethereum?.selectedAddress) {
-      setWalletAddress(window.ethereum.selectedAddress);
+ useEffect(() => {
+  const getConnectedWallet = async () => {
+    if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        }
+      } catch (error) {
+        console.error('Failed to fetch wallet accounts:', error);
+      }
     }
+  };
+
+  getConnectedWallet();
+}, []);
+
   }, []);
 
   return (
