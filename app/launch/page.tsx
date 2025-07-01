@@ -56,10 +56,14 @@ export default function LaunchPage() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.ethereum && window.ethereum.selectedAddress) {
-      setWalletAddress(window.ethereum.selectedAddress);
+  if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
+    const ethereum = window.ethereum as any;
+    if (ethereum.selectedAddress) {
+      setWalletAddress(ethereum.selectedAddress);
     }
-  }, []);
+  }
+}, []);
+
 
   return (
     <main className="min-h-screen p-8 bg-[#111] text-white flex flex-col items-center justify-center space-y-6">
