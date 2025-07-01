@@ -1,6 +1,6 @@
 'use client';
 
-import { Ethereum } from '@metamask/providers';
+import type { MetaMaskInpageProvider } from '@metamask/providers';
 import { useEffect, useState } from 'react';
 import { ethers } from 'ethers';
 import { abi, bytecode } from '@/lib/forgecoin';
@@ -33,7 +33,7 @@ export default function LaunchPage() {
 
     try {
       setStatus('Connecting to wallet...');
-      const provider = new ethers.providers.Web3Provider(window.ethereum as Ethereum);
+      const provider = new ethers.providers.Web3Provider(window.ethereum as MetaMaskInpageProvider);
       const signer = await provider.getSigner();
 
       setStatus('Deploying your coin...');
