@@ -1,41 +1,37 @@
 'use client';
 
 import { useSearchParams } from 'next/navigation';
+import Link from 'next/link';
 import { Suspense } from 'react';
 
 function SuccessContent() {
-  const params = useSearchParams();
-  const tokenName = params.get('name');
-  const tokenSymbol = params.get('symbol');
-  const tokenSupply = params.get('supply');
-  const contractAddress = params.get('address');
+  const searchParams = useSearchParams();
+  const address = searchParams.get('address');
 
   return (
-    <main className="min-h-screen bg-[#111] text-white p-8 flex flex-col items-center justify-center space-y-6">
-      <h1 className="text-4xl font-bold text-green-400">🎉 Token Deployed Successfully!</h1>
+    <main className="min-h-screen p-8 bg-[#111] text-white flex flex-col items-center justify-center space-y-6">
+      <h1 className="text-4xl font-bold text-green-400">🎉 Token Created Successfully!</h1>
 
-      {tokenName && tokenSymbol && tokenSupply ? (
-        <>
-          <p className="text-lg">
-            You created <strong>{tokenName}</strong> (
-            <span className="text-orange-400">{tokenSymbol}</span>) with{' '}
-            <strong>{tokenSupply}</strong> tokens!
-          </p>
-          <p className="text-sm text-gray-300">
-            Contract Address:{' '}
-            <span className="text-blue-400 break-words">{contractAddress}</span>
-          </p>
-        </>
+      {address ? (
+        <p className="text-lg text-center">
+          Your token is live on the blockchain at:
+          <br />
+          <span className="font-mono text-yellow-400">{address}</span>
+        </p>
       ) : (
-        <p className="text-red-400">Missing token data. Please try again.</p>
+        <p className="text-red-400">No address found in URL.</p>
       )}
+
+      <Link href="/" className="px-6 py-2 mt-4 bg-blue-600 rounded hover:bg-blue-700">
+        🔙 Return to Home
+      </Link>
     </main>
   );
 }
 
 export default function SuccessPage() {
   return (
-    <Suspense fallback={<div className="text-white p-8">Loading token data...</div>}>
+    <Suspense fallback={<p className="text-white text-center p-10">Loading success info...</p>}>
       <SuccessContent />
     </Suspense>
   );
