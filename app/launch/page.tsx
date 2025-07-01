@@ -6,123 +6,147 @@ import { abi, bytecode } from '@/lib/forgecoin';
 import { useRouter } from 'next/navigation';
 
 export default function LaunchPage() {
-  const [walletAddress, setWalletAddress] = useState<string | null>(null);
+  const [walletAddress, setWalletAddress] = useState('');
   const [tokenName, setTokenName] = useState('');
   const [tokenSymbol, setTokenSymbol] = useState('');
   const [tokenSupply, setTokenSupply] = useState('');
   const [status, setStatus] = useState('');
   const router = useRouter();
 
-  useEffect(() => {
-    if (typeof window !== 'undefined' && window.ethereum?.request) {
-      window.ethereum.request({ method: 'eth_accounts' }).then((accounts: string[]) => {
-        if (accounts.length > 0) {
-          setWalletAddress(accounts[0]);
-        }
-      });
-    }
-  }, []);
-
   const connectWallet = async () => {
-    if (typeof window !== 'undefined' && window.ethereum?.request) {
-      try {
-        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-        setWalletAddress(accounts[0]);
-      } catch (err) {
-        console.error('Wallet connection failed:', err);
-      }
+    if (typeof window.ethereum !== 'undefined') {
+      const provider = new BrowserProvider(window.ethereum);
+      await window.ethereum.request({ method: 'eth_requestAccounts' });
+      const signer = await provider.getSigner();
+      const address = await signer.getAddress();
+      setWalletAddress(address);
+    } else {
+      alert('Please install MetaMask');
     }
   };
 
   const deployToken = async () => {
-  if (!tokenName || !tokenSymbol || !tokenSupply) {
-    alert('Please fill in all fields.');
-    return;
-  }
+    if (!tokenName || !tokenSymbol || !tokenSupply) {
+      alert('Please fill in all fields.');
+      return;
+    }
 
-  if (!window.ethereum) {
-    alert('Please install MetaMask.');
-    return;
-  }
+    try {
+      setStatus('Deploying your coin...');
+      const provider = new BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
 
-  try {
-    setStatus('Deploying your coin...');
+      const factory = new ContractFactory(abi, bytecode, signer);
+      const contract = await factory.deploy(
+        tokenName,
+        tokenSymbol,
+        parseUnits(tokenSupply, 18)
+      );
+      await contract.waitForDeployment();
 
-    const provider = new BrowserProvider(window.ethereum);
-    const signer = await provider.getSigner();
+      const deployedAddress = await contract.getAddress();
+      setStatus('Token deployed at:');
+      router.push(`/success?address=${deployedAddress}`);
+    } catch (err) {
+      console.error('Error deploying token:', err);
+      setStatus('Deployment failed. See console for details.');
+    }
+  };
 
-    const factory = new ContractFactory(abi, bytecode, signer);
-
-    const parsedSupply = parseUnits(tokenSupply, 18);
-
-    const contract = await factory.deploy(tokenName, tokenSymbol, parsedSupply);
-    await contract.waitForDeployment();
-
-    const deployedAddress = await contract.getAddress();
-    setStatus('Token deployed at:');
-    setDeployedAddress(deployedAddress);
-
-    // ✅ redirect to success page with deployed address
-    router.push(`/success?address=${deployedAddress}`);
-
-  } catch (error: any) {
-    console.error('Error deploying token:', error);
-    setStatus('Deployment failed. See console for details.');
-  }
-};
-
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.ethereum?.selectedAddress) {
+      setWalletAddress(window.ethereum.selectedAddress);
+    }
+  }, []);
 
   return (
-    <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#111', color: 'white', minHeight: '100vh' }}>
-      <h1 style={{ fontSize: '2.5rem', fontWeight: 'bold', marginBottom: '1rem' }}>Forge Your Coin</h1>
+    <div style={{ padding: '2rem', color: 'white', textAlign: 'center' }}>
+      <h1 style={{ fontSize: '2.5rem', marginBottom: '1rem' }}>Forge Your Coin</h1>
       {walletAddress ? (
-        <p style={{ color: '#aaa', marginBottom: '1rem' }}>Connected: {walletAddress}</p>
+        <p>Connected: {walletAddress}</p>
       ) : (
-        <button onClick={connectWallet} style={{ backgroundColor: 'orange', color: 'white', padding: '0.75rem 1.5rem', fontSize: '1rem', borderRadius: '6px', border: 'none', cursor: 'pointer', marginBottom: '1rem' }}>
+        <button
+          onClick={connectWallet}
+          style={{
+            backgroundColor: '#ff5c00',
+            color: 'white',
+            padding: '10px 20px',
+            border: 'none',
+            borderRadius: '6px',
+            cursor: 'pointer',
+            fontSize: '16px',
+            marginBottom: '1.5rem',
+          }}
+        >
           Connect Wallet
         </button>
       )}
 
-      <div style={{ maxWidth: '400px', margin: '2rem auto', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      <div style={{ maxWidth: '400px', margin: '0 auto' }}>
         <input
           type="text"
           placeholder="Token Name"
           value={tokenName}
           onChange={(e) => setTokenName(e.target.value)}
-          style={{ padding: '0.75rem', borderRadius: '5px', border: '1px solid #444', backgroundColor: '#222', color: '#fff' }}
+          style={{
+            width: '100%',
+            padding: '10px',
+            marginBottom: '10px',
+            backgroundColor: '#222',
+            color: 'white',
+            border: '1px solid #444',
+            borderRadius: '4px',
+          }}
         />
         <input
           type="text"
           placeholder="Token Symbol"
           value={tokenSymbol}
           onChange={(e) => setTokenSymbol(e.target.value)}
-          style={{ padding: '0.75rem', borderRadius: '5px', border: '1px solid #444', backgroundColor: '#222', color: '#fff' }}
+          style={{
+            width: '100%',
+            padding: '10px',
+            marginBottom: '10px',
+            backgroundColor: '#222',
+            color: 'white',
+            border: '1px solid #444',
+            borderRadius: '4px',
+          }}
         />
         <input
           type="number"
-          placeholder="Token Supply"
+          placeholder="Initial Supply"
           value={tokenSupply}
           onChange={(e) => setTokenSupply(e.target.value)}
-          style={{ padding: '0.75rem', borderRadius: '5px', border: '1px solid #444', backgroundColor: '#222', color: '#fff' }}
+          style={{
+            width: '100%',
+            padding: '10px',
+            marginBottom: '20px',
+            backgroundColor: '#222',
+            color: 'white',
+            border: '1px solid #444',
+            borderRadius: '4px',
+          }}
         />
+        <button
+          onClick={deployToken}
+          style={{
+            backgroundColor: '#ffa500',
+            color: 'black',
+            padding: '12px 30px',
+            border: 'none',
+            borderRadius: '8px',
+            fontWeight: 'bold',
+            cursor: 'pointer',
+            fontSize: '16px',
+            boxShadow: '0 0 20px 2px #ffa500',
+            transition: 'all 0.2s ease-in-out',
+          }}
+        >
+          Launch My Token
+        </button>
+        <p style={{ marginTop: '1rem', color: '#ccc' }}>{status}</p>
       </div>
-
-      <button onClick={deployToken} style={{
-        marginTop: '1rem',
-        backgroundColor: 'orange',
-        color: '#fff',
-        padding: '0.75rem 2rem',
-        fontSize: '1.1rem',
-        borderRadius: '6px',
-        border: 'none',
-        cursor: 'pointer',
-        boxShadow: '0 0 10px rgba(255,140,0,0.8)',
-        transition: 'transform 0.1s ease-in-out',
-      }}>
-        Launch My Token
-      </button>
-
-      {status && <p style={{ marginTop: '1rem', color: '#ccc' }}>{status}</p>}
     </div>
   );
 }
