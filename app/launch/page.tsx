@@ -32,16 +32,15 @@ export default function LaunchPage() {
 
     try {
       setStatus('Connecting to wallet...');
-      const provider = new ethers.providers.Web3Provider(window.ethereum);
-      const signer = provider.getSigner();
+      const provider = new ethers.BrowserProvider(window.ethereum);
+      const signer = await provider.getSigner();
 
-      const factory = new ethers.ContractFactory(abi, bytecode, signer);
       setStatus('Deploying your coin...');
+      const factory = new ethers.ContractFactory(abi, bytecode, signer);
+      const contract = await factory.deploy(tokenName, tokenSymbol, ethers.parseUnits(tokenSupply, 18));
+      await contract.waitForDeployment();
 
-      const contract = await factory.deploy(tokenName, tokenSymbol, ethers.utils.parseUnits(tokenSupply, 18));
-      await contract.deployed();
-
-      setStatus(`Token deployed at address: ${contract.address}`);
+      setStatus(`Token deployed at address: ${(await contract.getAddress())}`);
     } catch (err) {
       console.error('Error deploying token:', err);
       setStatus('Deployment failed. See console for details.');
@@ -49,7 +48,7 @@ export default function LaunchPage() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.ethereum && window.ethereum.selectedAddress) {
+    if (typeof window !== 'undefined' && window.ethereum?.selectedAddress) {
       setWalletAddress(window.ethereum.selectedAddress);
     }
   }, []);
@@ -57,6 +56,7 @@ export default function LaunchPage() {
   return (
     <main className="min-h-screen p-8 bg-[#111] text-white flex flex-col items-center justify-center space-y-6">
       <h1 className="text-4xl font-bold">Forge Your Coin</h1>
+
       {!walletAddress ? (
         <button onClick={connectWallet} className="px-6 py-2 bg-blue-600 rounded hover:bg-blue-700">
           Connect Wallet
