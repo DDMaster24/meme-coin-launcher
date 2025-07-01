@@ -1,105 +1,99 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { ethers } from 'ethers';
+import { abi, bytecode } from '@/lib/forgecoin';
 
 export default function LaunchPage() {
   const [walletAddress, setWalletAddress] = useState('');
   const [tokenName, setTokenName] = useState('');
   const [tokenSymbol, setTokenSymbol] = useState('');
   const [tokenSupply, setTokenSupply] = useState('');
-  const [isLaunching, setIsLaunching] = useState(false);
-  const [launchMessage, setLaunchMessage] = useState('');
+  const [status, setStatus] = useState('');
 
-  useEffect(() => {
-    const savedAddress = localStorage.getItem('walletAddress');
-    if (savedAddress) {
-      setWalletAddress(savedAddress);
+  const connectWallet = async () => {
+    if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+        setWalletAddress(accounts[0]);
+      } catch (error) {
+        console.error('Wallet connection failed:', error);
+      }
+    } else {
+      alert('MetaMask not found!');
     }
-  }, []);
+  };
 
-  const handleLaunch = async () => {
+  const deployToken = async () => {
     if (!tokenName || !tokenSymbol || !tokenSupply) {
-      setLaunchMessage('❌ Please fill in all fields.');
+      alert('Please fill in all fields.');
       return;
     }
 
-    setIsLaunching(true);
-    setLaunchMessage('🔥 Forging your coin...');
+    try {
+      setStatus('Connecting to wallet...');
+      const provider = new ethers.providers.Web3Provider(window.ethereum);
+      const signer = provider.getSigner();
 
-    // Simulated delay (you’ll replace this with smart contract interaction later)
-    setTimeout(() => {
-      setIsLaunching(false);
-      setLaunchMessage(`✅ Coin "${tokenName}" (${tokenSymbol}) with ${tokenSupply} tokens has been forged successfully!`);
-    }, 3000);
+      const factory = new ethers.ContractFactory(abi, bytecode, signer);
+      setStatus('Deploying your coin...');
+
+      const contract = await factory.deploy(tokenName, tokenSymbol, ethers.utils.parseUnits(tokenSupply, 18));
+      await contract.deployed();
+
+      setStatus(`Token deployed at address: ${contract.address}`);
+    } catch (err) {
+      console.error('Error deploying token:', err);
+      setStatus('Deployment failed. See console for details.');
+    }
   };
 
-  if (!walletAddress) {
-    return (
-      <main className="min-h-screen bg-black text-white flex flex-col items-center justify-center px-6">
-        <h1 className="text-3xl text-red-500 mb-4">⚠️ Wallet Not Connected</h1>
-        <p className="text-center text-gray-300">
-          Please return to the <a href="/" className="text-blue-400 underline">homepage</a> and connect your wallet before launching your coin.
-        </p>
-      </main>
-    );
-  }
+  useEffect(() => {
+    if (typeof window !== 'undefined' && window.ethereum && window.ethereum.selectedAddress) {
+      setWalletAddress(window.ethereum.selectedAddress);
+    }
+  }, []);
 
   return (
-    <main className="min-h-screen bg-[#1b1b1b] text-white flex flex-col items-center px-6 py-12">
-      <h1 className="text-4xl font-bold mb-6 text-orange-400">Forge Your Meme Coin 🔨</h1>
-      <p className="text-green-400 mb-4">
-        Wallet Connected: {walletAddress.slice(0, 6)}...{walletAddress.slice(-4)}
-      </p>
-
-      <div className="bg-[#2b2b2b] p-8 rounded shadow-lg w-full max-w-md space-y-6">
-        <div>
-          <label className="block mb-1 text-sm font-medium">Token Name</label>
-          <input
-            type="text"
-            placeholder="e.g. Forge Coin"
-            className="w-full px-4 py-2 rounded bg-[#1a1a1a] text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            value={tokenName}
-            onChange={(e) => setTokenName(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 text-sm font-medium">Token Symbol</label>
-          <input
-            type="text"
-            placeholder="e.g. FGC"
-            className="w-full px-4 py-2 rounded bg-[#1a1a1a] text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            value={tokenSymbol}
-            onChange={(e) => setTokenSymbol(e.target.value)}
-          />
-        </div>
-
-        <div>
-          <label className="block mb-1 text-sm font-medium">Total Supply</label>
-          <input
-            type="number"
-            placeholder="e.g. 1000000"
-            className="w-full px-4 py-2 rounded bg-[#1a1a1a] text-white border border-gray-600 focus:outline-none focus:ring-2 focus:ring-orange-500"
-            value={tokenSupply}
-            onChange={(e) => setTokenSupply(e.target.value)}
-          />
-        </div>
-
-        <button
-          onClick={handleLaunch}
-          disabled={isLaunching}
-          className={`w-full py-3 rounded font-bold transition-all ${
-            isLaunching
-              ? 'bg-gray-600 cursor-not-allowed'
-              : 'bg-orange-600 hover:bg-orange-700 text-white'
-          }`}
-        >
-          {isLaunching ? '🔨 Forging...' : '🚀 Launch My Coin'}
+    <main className="min-h-screen p-8 bg-[#111] text-white flex flex-col items-center justify-center space-y-6">
+      <h1 className="text-4xl font-bold">Forge Your Coin</h1>
+      {!walletAddress ? (
+        <button onClick={connectWallet} className="px-6 py-2 bg-blue-600 rounded hover:bg-blue-700">
+          Connect Wallet
         </button>
+      ) : (
+        <p>Connected: {walletAddress}</p>
+      )}
 
-        {launchMessage && (
-          <p className="text-center mt-4 text-sm text-yellow-400">{launchMessage}</p>
-        )}
+      <div className="w-full max-w-md space-y-4">
+        <input
+          type="text"
+          placeholder="Token Name"
+          value={tokenName}
+          onChange={(e) => setTokenName(e.target.value)}
+          className="w-full px-4 py-2 text-black rounded"
+        />
+        <input
+          type="text"
+          placeholder="Token Symbol"
+          value={tokenSymbol}
+          onChange={(e) => setTokenSymbol(e.target.value)}
+          className="w-full px-4 py-2 text-black rounded"
+        />
+        <input
+          type="number"
+          placeholder="Initial Supply"
+          value={tokenSupply}
+          onChange={(e) => setTokenSupply(e.target.value)}
+          className="w-full px-4 py-2 text-black rounded"
+        />
+        <button
+          onClick={deployToken}
+          className="w-full px-4 py-2 bg-orange-600 rounded hover:bg-orange-700"
+        >
+          Launch My Token
+        </button>
+        {status && <p className="mt-4 text-center">{status}</p>}
       </div>
     </main>
   );
