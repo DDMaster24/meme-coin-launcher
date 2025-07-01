@@ -46,7 +46,22 @@ export default function LaunchPage() {
 
       const deployedAddress = await contract.getAddress();
       setStatus('Token deployed at:');
-      router.push(`/success?address=${deployedAddress}`);
+
+      // Save to localStorage
+      const newToken = {
+        address: deployedAddress,
+        name: tokenName,
+        symbol: tokenSymbol,
+        supply: tokenSupply,
+      };
+
+      const existing = JSON.parse(localStorage.getItem('forgeTokens') || '[]');
+      localStorage.setItem('forgeTokens', JSON.stringify([...existing, newToken]));
+
+      // Redirect with query params
+      router.push(
+        `/success?address=${deployedAddress}&name=${tokenName}&symbol=${tokenSymbol}&supply=${tokenSupply}`
+      );
     } catch (err) {
       console.error('Error deploying token:', err);
       setStatus('Deployment failed. See console for details.');
