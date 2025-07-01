@@ -35,29 +35,42 @@ export default function LaunchPage() {
   };
 
   const deployToken = async () => {
-    if (!tokenName || !tokenSymbol || !tokenSupply) {
-      alert('Please fill in all fields.');
-      return;
-    }
+  if (!tokenName || !tokenSymbol || !tokenSupply) {
+    alert('Please fill in all fields.');
+    return;
+  }
 
-    try {
-      setStatus('Deploying your coin...');
+  if (!window.ethereum) {
+    alert('Please install MetaMask.');
+    return;
+  }
 
-      const provider = new BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
-      const factory = new ContractFactory(abi, bytecode, signer);
+  try {
+    setStatus('Deploying your coin...');
 
-      const contract = await factory.deploy(tokenName, tokenSymbol, parseUnits(tokenSupply, 18));
-      await contract.waitForDeployment();
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
 
-      const address = await contract.getAddress();
-      setStatus(`Token deployed at: ${address}`);
-      router.push(`/success?address=${address}`);
-    } catch (error) {
-      console.error('Deployment failed:', error);
-      setStatus('Deployment failed. See console for details.');
-    }
-  };
+    const factory = new ContractFactory(abi, bytecode, signer);
+
+    const parsedSupply = parseUnits(tokenSupply, 18);
+
+    const contract = await factory.deploy(tokenName, tokenSymbol, parsedSupply);
+    await contract.waitForDeployment();
+
+    const deployedAddress = await contract.getAddress();
+    setStatus('Token deployed at:');
+    setDeployedAddress(deployedAddress);
+
+    // ✅ redirect to success page with deployed address
+    router.push(`/success?address=${deployedAddress}`);
+
+  } catch (error: any) {
+    console.error('Error deploying token:', error);
+    setStatus('Deployment failed. See console for details.');
+  }
+};
+
 
   return (
     <div style={{ padding: '2rem', textAlign: 'center', backgroundColor: '#111', color: 'white', minHeight: '100vh' }}>
