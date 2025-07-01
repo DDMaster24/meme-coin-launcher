@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ContractFactory, BrowserProvider } from 'ethers';
+import { ContractFactory, BrowserProvider, parseUnits } from 'ethers';
 import { abi, bytecode } from '@/lib/forgecoin';
 
 export default function LaunchPage() {
@@ -37,7 +37,7 @@ export default function LaunchPage() {
 
       setStatus('Deploying your coin...');
       const factory = new ethers.ContractFactory(abi, bytecode, signer);
-      const contract = await factory.deploy(tokenName, tokenSymbol, ethers.parseUnits(tokenSupply, 18));
+      const contract = await factory.deploy(tokenName, tokenSymbol, parseUnits(tokenSupply, 18));
       await contract.waitForDeployment();
 
       setStatus(`Token deployed at address: ${(await contract.getAddress())}`);
