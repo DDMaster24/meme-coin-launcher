@@ -18,22 +18,36 @@ export default function LaunchPage() {
     }
   };
 
-  const deployToken = async () => {
-    try {
-      setStatus('Deploying your coin...');
-      const provider = new BrowserProvider(window.ethereum);
-      const signer = await provider.getSigner();
+const deployToken = async () => {
+  if (!tokenName || !tokenSymbol || !tokenSupply) {
+    alert('Please fill in all fields.');
+    return;
+  }
 
-      const factory = new ContractFactory(abi, bytecode, signer);
-      const contract = await factory.deploy(); // ✅ No arguments
-      await contract.waitForDeployment();
+  try {
+    setStatus('Connecting to wallet...');
+    const provider = new BrowserProvider(window.ethereum);
+    const signer = await provider.getSigner();
 
-      setStatus(`Token deployed at: ${contract.target}`);
-    } catch (err) {
-      console.error('Error deploying token:', err);
-      setStatus('Deployment failed. See console for details.');
-    }
-  };
+    const factory = new ContractFactory(abi, bytecode, signer);
+    setStatus('Deploying your coin...');
+
+    const contract = await factory.deploy(
+      tokenName,
+      tokenSymbol,
+      parseUnits(tokenSupply, 18)
+    );
+    await contract.waitForDeployment();
+
+    const address = await contract.getAddress();
+
+    // Redirect to success page with query params
+    window.location.href = `/success?name=${encodeURIComponent(tokenName)}&symbol=${encodeURIComponent(tokenSymbol)}&supply=${encodeURIComponent(tokenSupply)}&address=${address}`;
+  } catch (err) {
+    console.error('Error deploying token:', err);
+    setStatus('Deployment failed. See console for details.');
+  }
+};
 
   useEffect(() => {
     if (typeof window !== 'undefined' && typeof window.ethereum !== 'undefined') {
