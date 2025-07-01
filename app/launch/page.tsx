@@ -69,10 +69,21 @@ export default function LaunchPage() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.ethereum?.selectedAddress) {
-      setWalletAddress(window.ethereum.selectedAddress);
+  const checkWallet = async () => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        }
+      } catch (err) {
+        console.error('Error fetching connected accounts:', err);
+      }
     }
-  }, []);
+  };
+  checkWallet();
+}, []);
+
 
   return (
     <div style={{ padding: '2rem', color: 'white', textAlign: 'center' }}>

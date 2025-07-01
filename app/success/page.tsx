@@ -1,15 +1,13 @@
-// app/success/page.tsx
-
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Copy, ExternalLink } from 'lucide-react';
 import { toast } from 'sonner';
 
-export default function SuccessPage() {
+function SuccessInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -22,12 +20,12 @@ export default function SuccessPage() {
 
   useEffect(() => {
     if (!tokenAddress) {
-      router.push('/launch'); // fallback
+      router.push('/launch');
     }
 
     const timer = setTimeout(() => {
       router.push('/monitor');
-    }, 15000); // redirect after 15 seconds
+    }, 15000);
 
     return () => clearTimeout(timer);
   }, [tokenAddress, router]);
@@ -88,5 +86,13 @@ export default function SuccessPage() {
         </CardContent>
       </Card>
     </main>
+  );
+}
+
+export default function SuccessPage() {
+  return (
+    <Suspense fallback={<div className="text-white p-6">Loading...</div>}>
+      <SuccessInner />
+    </Suspense>
   );
 }
