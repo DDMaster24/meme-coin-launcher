@@ -54,10 +54,22 @@ export default function LaunchPage() {
   };
 
   useEffect(() => {
-    if (typeof window !== 'undefined' && window.ethereum?.selectedAddress) {
-      setWalletAddress(window.ethereum.selectedAddress);
+  const checkWalletConnection = async () => {
+    if (typeof window !== 'undefined' && window.ethereum) {
+      try {
+        const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+        if (accounts.length > 0) {
+          setWalletAddress(accounts[0]);
+        }
+      } catch (err) {
+        console.error('Error checking wallet connection:', err);
+      }
     }
-  }, []);
+  };
+
+  checkWalletConnection();
+}, []);
+
 
   return (
     <main className="min-h-screen p-8 bg-[#111] text-white flex flex-col items-center justify-center space-y-6">
