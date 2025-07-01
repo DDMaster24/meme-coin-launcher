@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ContractFactory, BrowserProvider, parseUnits } from 'ethers';
+import { BrowserProvider, ContractFactory, parseUnits } from 'ethers';
 import { abi, bytecode } from '@/lib/forgecoin';
 
 export default function LaunchPage() {
@@ -35,12 +35,13 @@ export default function LaunchPage() {
       const provider = new BrowserProvider(window.ethereum);
       const signer = await provider.getSigner();
 
+      const factory = new ContractFactory(abi, bytecode, signer);
       setStatus('Deploying your coin...');
-      const factory = new ethers.ContractFactory(abi, bytecode, signer);
+
       const contract = await factory.deploy(tokenName, tokenSymbol, parseUnits(tokenSupply, 18));
       await contract.waitForDeployment();
 
-      setStatus(`Token deployed at address: ${(await contract.getAddress())}`);
+      setStatus(`Token deployed at address: ${contract.target}`);
     } catch (err) {
       console.error('Error deploying token:', err);
       setStatus('Deployment failed. See console for details.');
@@ -56,7 +57,6 @@ export default function LaunchPage() {
   return (
     <main className="min-h-screen p-8 bg-[#111] text-white flex flex-col items-center justify-center space-y-6">
       <h1 className="text-4xl font-bold">Forge Your Coin</h1>
-
       {!walletAddress ? (
         <button onClick={connectWallet} className="px-6 py-2 bg-blue-600 rounded hover:bg-blue-700">
           Connect Wallet
